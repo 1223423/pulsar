@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pulsar Web</title>
+  <link rel="icon" type="image/svg+xml" href="/static/pulsarsvg.svg" />
+  <link rel="stylesheet" href="/static/app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div id="pulsar-home" class="brand-home" role="button" tabindex="0" aria-label="Go to main menu">
+      <span class="brand-icon" aria-hidden="true"></span>
+      <h1>Pulsar</h1>
+    </div>
+
+    <div class="topbar-actions">
+      <div class="settings-wrap">
+        <button id="settings-btn" class="icon-btn" aria-label="Open settings" title="Settings">⚙</button>
+        <div id="settings-menu" class="settings-menu hidden" role="menu" aria-label="Settings">
+          <div class="settings-title">Display</div>
+          <label id="settings-rr-row" class="setting-row" for="setting-show-rr">
+            <span>Show RR plot</span>
+            <input id="setting-show-rr" type="checkbox" />
+          </label>
+          <label id="settings-debug-row" class="setting-row" for="setting-debug">
+            <span>Debug device info</span>
+            <input id="setting-debug" type="checkbox" />
+          </label>
+
+          <div class="settings-title">Marker Shortcuts</div>
+          <div class="marker-preset-list">
+            <div class="marker-preset-row">
+              <span class="preset-key">1</span>
+              <input id="marker-preset-label-1" type="text" maxlength="40" />
+              <input id="marker-preset-color-1" type="color" />
+            </div>
+            <div class="marker-preset-row">
+              <span class="preset-key">2</span>
+              <input id="marker-preset-label-2" type="text" maxlength="40" />
+              <input id="marker-preset-color-2" type="color" />
+            </div>
+            <div class="marker-preset-row">
+              <span class="preset-key">3</span>
+              <input id="marker-preset-label-3" type="text" maxlength="40" />
+              <input id="marker-preset-color-3" type="color" />
+            </div>
+            <div class="marker-preset-row">
+              <span class="preset-key">4</span>
+              <input id="marker-preset-label-4" type="text" maxlength="40" />
+              <input id="marker-preset-color-4" type="color" />
+            </div>
+            <div class="marker-preset-row">
+              <span class="preset-key">5</span>
+              <input id="marker-preset-label-5" type="text" maxlength="40" />
+              <input id="marker-preset-color-5" type="color" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button id="open-connect-btn" class="btn">Connect Device</button>
+      <button id="disconnect-btn" class="btn danger hidden">Disconnect</button>
+
+      <div class="status-chip" id="connection-chip">
+        <span class="dot" id="connection-dot"></span>
+        <span id="connection-label">Not connected</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section id="main-menu" class="panel main-menu">
+      <div class="main-menu-actions">
+        <button id="new-session-btn" class="btn success">New Session</button>
+        <button id="view-recordings-btn" class="btn">View Recordings</button>
+      </div>
+    </section>
+
+    <section class="panel dashboard">
+      <div class="control-ribbon">
+        <div class="control-group">
+          <button id="record-toggle-btn" class="btn danger">Record</button>
+        </div>
+      </div>
+
+      <div id="event-log" class="event-log"></div>
+
+      <div class="stats-grid">
+        <article id="current-hr-stat-card" class="stat"><h3>Current HR</h3><p id="stat-hr">—</p></article>
+        <article class="stat"><h3>Min HR</h3><p id="stat-min-hr">—</p></article>
+        <article class="stat"><h3>Max HR</h3><p id="stat-max-hr">—</p></article>
+        <article id="zone-stat-card" class="stat"><h3>Zone</h3><p id="stat-zone">—</p></article>
+      </div>
+      <section id="viewer-zone-summary" class="viewer-zone-summary hidden">
+        <div id="viewer-zone-maxhr" class="viewer-zone-maxhr"></div>
+        <div id="viewer-zone-badges" class="viewer-zone-badges"></div>
+      </section>
+
+      <div class="chart-panel" data-chart="hr">
+        <div class="chart-tools">
+          <button
+            type="button"
+            class="chart-lock-btn locked"
+            data-chart="hr"
+            aria-label="Toggle live follow for heart rate chart"
+            title="Live follow locked"
+          >
+            🔒
+          </button>
+        </div>
+        <canvas id="hr-canvas"></canvas>
+        <div id="hr-marker-overlay" class="hr-marker-overlay"></div>
+        <div id="marker-popover" class="marker-popover hidden" role="dialog" aria-label="Marker editor">
+          <input id="marker-popover-label" type="text" maxlength="120" />
+          <input id="marker-popover-color" type="color" />
+          <button id="marker-popover-ok" type="button" class="btn small">OK</button>
+          <button id="marker-popover-delete" type="button" class="marker-delete-btn hidden" aria-label="Delete marker">✕</button>
+        </div>
+        <div id="marker-test-popover" class="marker-test-popover hidden" role="dialog" aria-label="Marker tests">
+          <button id="marker-test-hrr60-btn" type="button" class="test-icon-btn" title="Run HRR60 test" aria-label="Run HRR60 test">⏱</button>
+        </div>
+        <button
+          type="button"
+          class="chart-resizer"
+          data-chart="hr"
+          aria-label="Resize heart rate chart height"
+          title="Drag to resize chart height"
+        ></button>
+      </div>
+
+      <div id="rr-panel" class="chart-panel hidden" data-chart="rr">
+        <div class="chart-tools">
+          <button
+            type="button"
+            class="chart-lock-btn locked"
+            data-chart="rr"
+            aria-label="Toggle live follow for RR chart"
+            title="Live follow locked"
+          >
+            🔒
+          </button>
+        </div>
+        <canvas id="rr-canvas"></canvas>
+        <button
+          type="button"
+          class="chart-resizer"
+          data-chart="rr"
+          aria-label="Resize RR chart height"
+          title="Drag to resize chart height"
+        ></button>
+      </div>
+
+      <div id="ecg-panel" class="chart-panel" data-chart="ecg">
+        <div class="chart-tools">
+          <button
+            type="button"
+            class="chart-lock-btn locked"
+            data-chart="ecg"
+            aria-label="Toggle live follow for ECG chart"
+            title="Live follow locked"
+          >
+            🔒
+          </button>
+        </div>
+        <canvas id="ecg-canvas"></canvas>
+        <button
+          type="button"
+          class="chart-resizer"
+          data-chart="ecg"
+          aria-label="Resize ECG chart height"
+          title="Drag to resize chart height"
+        ></button>
+      </div>
+
+      <div class="sessions-panel">
+        <div class="sessions-header">
+          <h2>Recent Sessions</h2>
+          <button id="refresh-sessions-btn" class="btn small">Refresh</button>
+        </div>
+        <div id="viewer-session-actions" class="viewer-session-actions hidden">
+          <input id="viewer-session-name-input" type="text" maxlength="120" placeholder="Session name" />
+          <button id="viewer-session-save-btn" class="btn small">Save</button>
+          <button id="viewer-delete-session-btn" class="btn small danger">Delete</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Session</th>
+                <th>Started</th>
+                <th>Duration (min)</th>
+                <th>Device</th>
+              </tr>
+            </thead>
+            <tbody id="sessions-body"></tbody>
+          </table>
+        </div>
+        <button id="sessions-resizer" type="button" class="panel-resizer" aria-label="Resize sessions list" title="Drag to resize sessions list"></button>
+      </div>
+    </section>
+  </main>
+
+  <div id="connection-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Connect Device</h2>
+      </div>
+
+      <div class="modal-actions">
+        <button id="scan-btn" class="btn success">Scan for Devices</button>
+        <div id="activity-indicator" class="scan-indicator hidden">
+          <span class="spinner"></span>
+          <span id="activity-label">Working...</span>
+        </div>
+      </div>
+
+      <div id="device-status" class="device-status"></div>
+      <ul id="device-list" class="device-list"></ul>
+    </div>
+  </div>
+
+  <div id="test-result-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card test-result-card">
+      <div class="modal-header">
+        <h2 id="test-result-title">Test Result</h2>
+        <button id="test-result-close-btn" class="btn">Close</button>
+      </div>
+      <pre id="test-result-content" class="test-result-content"></pre>
+    </div>
+  </div>
+
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>
